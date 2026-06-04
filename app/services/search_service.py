@@ -1,5 +1,6 @@
 """Semantic search service."""
 
+from collections.abc import Iterable
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -54,6 +55,11 @@ def _build_results(raw: dict[str, Any]) -> list[SearchResult]:
     return results
 
 
+def _stream_text(text: str, chunk_size: int = 12) -> Iterable[str]:
+    for index in range(0, len(text), chunk_size):
+        yield text[index : index + chunk_size]
+
+
 def search_knowledge_base(
     db: Session,
     query: str,
@@ -76,3 +82,21 @@ def search_knowledge_base(
         kb_id=knowledge_base_id,
     )
     return _build_results(raw_results)
+
+
+def stream_search_response(query: str, results: list[SearchResult]) -> Iterable[str]:
+    yield from _stream_text(f"正在查询知识库：{_normalize_query(query)}\n")
+
+    if not results:
+        yield from _stream_text("未找到相关内容。\n")
+        return
+
+    yield from _stream_text(f"找到 {len(results)} 条相关内容。\n")
+    for index, result in enumerate(results, start=1):
+        text = (
+            f"\n[{index}] {result.title}\n"
+            f"相关度：{result.score}\n"
+            f"来源：知识库 {result.kb_id}，文档 {result.document_id}，片段 {result.chunk_index}\n"
+            f"相关片段：{result.content}\n"
+        )
+        yield from _stream_text(text)
