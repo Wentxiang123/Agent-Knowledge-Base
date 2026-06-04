@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate
+from app.services.vector_store_service import get_vector_store_service
 
 
 def _normalize_text(value: str | None) -> str | None:
@@ -72,5 +73,6 @@ def update_knowledge_base(
 
 def delete_knowledge_base(db: Session, kb_id: int) -> None:
     knowledge_base = get_knowledge_base(db, kb_id)
+    get_vector_store_service().delete_by_knowledge_base(kb_id)
     db.delete(knowledge_base)
     db.commit()
