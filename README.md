@@ -23,6 +23,7 @@ Implemented:
 - Chroma vector store integration
 - Automatic vector indexing after document ingestion
 - Semantic search API
+- Streaming search response
 - CRUD tests for knowledge base endpoints
 - Document ingestion tests
 - Embedding service tests
@@ -30,7 +31,6 @@ Implemented:
 
 Planned:
 
-- Streaming search response
 - MCP tool integration
 
 ## API Endpoints
@@ -100,6 +100,24 @@ Response example:
     }
   ]
 }
+```
+
+### Streaming Search
+
+```text
+GET /search/stream?query=春天&knowledge_base_id=1&top_k=5
+```
+
+The streaming endpoint returns `text/plain` chunks such as:
+
+```text
+正在查询知识库：春天
+找到 1 条相关内容。
+
+[1] 春
+相关度：0.92
+来源：知识库 1，文档 1，片段 0
+相关片段：相关文本片段...
 ```
 
 ## Environment Variables
