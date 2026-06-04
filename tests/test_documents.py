@@ -4,12 +4,14 @@ from pathlib import Path
 
 os.environ["DATABASE_URL"] = "sqlite:///./data/test_app.db"
 os.environ["UPLOAD_DIR"] = "./data/test_uploads"
+os.environ["CHROMA_PERSIST_DIRECTORY"] = "./data/test_vector_store"
 
 from fastapi.testclient import TestClient
 
 from app.database import Base, engine
 from app.main import app
 from app.services.document_service import chunk_text
+from app.services.vector_store_service import get_vector_store_service
 
 client = TestClient(app)
 
@@ -23,7 +25,9 @@ def teardown_module() -> None:
     test_db = Path("./data/test_app.db")
     if test_db.exists():
         test_db.unlink()
+    get_vector_store_service.cache_clear()
     shutil.rmtree("./data/test_uploads", ignore_errors=True)
+    shutil.rmtree("./data/test_vector_store", ignore_errors=True)
 
 
 def create_test_knowledge_base() -> int:
@@ -43,7 +47,7 @@ def test_chunk_text_uses_overlap() -> None:
     assert chunks[0][-10:] == chunks[1][:10]
 
 
-def test_upload_text_document_creates_chunks() -> None:
+def test_upload_text_document_creates_chunks_and_vectors() -> None:
     kb_id = create_test_knowledge_base()
     content = "春天来了，万物复苏。" * 120
 
@@ -58,6 +62,7 @@ def test_upload_text_document_creates_chunks() -> None:
     assert data["document"]["kb_id"] == kb_id
     assert data["chunk_count"] > 1
     assert data["chunks"][0]["chunk_index"] == 0
+    assert all(chunk["vector_id"].startswith("chunk-") for chunk in data["chunks"])
 
 
 def test_upload_gb18030_txt_document() -> None:
@@ -74,6 +79,7 @@ def test_upload_gb18030_txt_document() -> None:
     data = response.json()
     assert data["document"]["title"] == "故乡"
     assert data["chunk_count"] == 1
+    assert data["chunks"][0]["vector_id"].startswith("chunk-")
     assert "少年闰土" in data["chunks"][0]["content"]
 
 
