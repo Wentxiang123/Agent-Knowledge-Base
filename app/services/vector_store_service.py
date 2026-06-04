@@ -60,6 +60,18 @@ class VectorStoreService:
                 detail=f"vector store upsert failed: {exc}",
             ) from exc
 
+    def delete_by_knowledge_base(self, kb_id: int) -> None:
+        try:
+            self.collection.delete(where={"kb_id": kb_id})
+        except Exception as exc:
+            message = str(exc).lower()
+            if "no ids" in message or "not found" in message:
+                return
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"vector store delete failed: {exc}",
+            ) from exc
+
     def query(
         self,
         query_embedding: list[float],
