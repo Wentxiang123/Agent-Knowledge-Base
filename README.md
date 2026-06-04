@@ -15,12 +15,14 @@ Implemented:
 - SQLAlchemy data models for knowledge bases, documents, and chunks
 - Knowledge base CRUD API
 - Pagination for knowledge base listing
+- Text document upload
+- txt file parsing with UTF-8 and GB18030 support
+- Text chunking with fixed-size overlap
 - CRUD tests for knowledge base endpoints
+- Document ingestion tests
 
 Planned:
 
-- Text and txt document upload
-- Text chunking
 - Embedding generation
 - Vector store integration
 - Semantic search
@@ -44,6 +46,27 @@ GET    /knowledge-bases/{kb_id}
 PUT    /knowledge-bases/{kb_id}
 DELETE /knowledge-bases/{kb_id}
 ```
+
+### Documents
+
+```text
+POST /knowledge-bases/{kb_id}/documents/text
+POST /knowledge-bases/{kb_id}/documents/file
+```
+
+Text upload request example:
+
+```json
+{
+  "title": "春",
+  "content": "盼望着，盼望着，东风来了，春天的脚步近了。"
+}
+```
+
+The file upload endpoint accepts multipart form data with:
+
+- `file`: a `.txt` file
+- `title`: optional document title
 
 ## Run Locally
 
