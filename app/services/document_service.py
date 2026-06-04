@@ -11,7 +11,7 @@ from app import models
 from app.schemas import DocumentTextCreate
 from app.services import kb_service
 from app.services.embedding_service import embedding_service
-from app.services.vector_store_service import vector_store_service
+from app.services.vector_store_service import get_vector_store_service
 
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
@@ -93,7 +93,7 @@ def _store_chunks_in_vector_store(document: models.Document, chunks: list[models
     for chunk in chunks:
         chunk.vector_id = f"chunk-{chunk.id}"
     embeddings = embedding_service.embed_texts([chunk.content for chunk in chunks])
-    vector_store_service.upsert_chunks(chunks=chunks, embeddings=embeddings, document=document)
+    get_vector_store_service().upsert_chunks(chunks=chunks, embeddings=embeddings, document=document)
 
 
 def create_document_from_text(
