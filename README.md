@@ -6,6 +6,8 @@ A semantic knowledge base with streaming retrieval and MCP integration for agent
 
 This project implements a lightweight knowledge base service that supports text ingestion, semantic search, streaming responses, and an MCP tool interface for agent workflows.
 
+For detailed setup, validation steps, and implementation notes, see [docs/run-and-implementation.md](docs/run-and-implementation.md).
+
 ## Current Status
 
 Implemented:
