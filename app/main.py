@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, File, Form, Query, Response, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app import models
@@ -138,4 +139,23 @@ def search_knowledge_base(
         knowledge_base_id=knowledge_base_id,
         top_k=top_k,
         results=results,
+    )
+
+
+@app.get("/search/stream")
+def stream_search_knowledge_base(
+    query: str = Query(..., min_length=1),
+    top_k: int = Query(5, ge=1, le=20),
+    knowledge_base_id: int | None = Query(default=None, ge=1),
+    db: Session = Depends(get_db),
+) -> StreamingResponse:
+    results = search_service.search_knowledge_base(
+        db=db,
+        query=query,
+        top_k=top_k,
+        knowledge_base_id=knowledge_base_id,
+    )
+    return StreamingResponse(
+        search_service.stream_search_response(query=query, results=results),
+        media_type="text/plain; charset=utf-8",
     )
