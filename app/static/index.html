@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent 知识库系统</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #202733;
+      --muted: #667085;
+      --line: #d9dee7;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --success: #15803d;
+      --warning: #b45309;
+      --danger: #b91c1c;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf3;
+      --soft-amber: #fffbeb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    }
+
+    header {
+      background: #111827;
+      color: #fff;
+      padding: 28px 32px;
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #d1d5db;
+      line-height: 1.6;
+    }
+
+    .doc-link {
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      border-radius: 6px;
+      padding: 10px 14px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 48px;
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      font-size: 22px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .column {
+      display: grid;
+      gap: 18px;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .step {
+      width: 30px;
+      height: 30px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 7px;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #cfd6e1;
+      border-radius: 6px;
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+      line-height: 1.65;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button:hover { background: var(--accent-dark); }
+    button.secondary { background: #475467; }
+    button.secondary:hover { background: #344054; }
+    button.ghost { color: var(--accent); background: var(--soft-blue); }
+    button.ghost:hover { background: #dbeafe; }
+
+    .message {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f2f4f7;
+      color: #344054;
+      line-height: 1.55;
+      min-height: 42px;
+    }
+
+    .message.success { background: var(--soft-green); color: var(--success); }
+    .message.error { background: #fef2f2; color: var(--danger); }
+    .message.warn { background: var(--soft-amber); color: var(--warning); }
+
+    .kb-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .kb-item {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcfe;
+    }
+
+    .kb-item strong { display: block; margin-bottom: 4px; }
+    .kb-item small { color: var(--muted); }
+
+    .result-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .result-card {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .result-card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .result-meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .result-card p {
+      margin: 0;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .stream-box {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 180px;
+      padding: 14px;
+      background: #0f172a;
+      color: #e5e7eb;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 10px 0 0;
+    }
+
+    @media (max-width: 900px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .layout, .status-bar, .row { grid-template-columns: 1fr; }
+      main { padding: 20px 14px 36px; }
+      header { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Agent 知识库系统</h1>
+        <p class="subtitle">创建知识库，上传文章，用自然语言搜索相关内容。</p>
+      </div>
+      <a class="doc-link" href="/docs" target="_blank" rel="noreferrer">接口文档</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="status-bar">
+      <div class="metric"><span>知识库数量</span><strong id="kbCount">0</strong></div>
+      <div class="metric"><span>当前知识库</span><strong id="activeKb">未选择</strong></div>
+      <div class="metric"><span>服务状态</span><strong id="healthState">检查中</strong></div>
+    </div>
+
+    <div class="layout">
+      <div class="column">
+        <section>
+          <div class="section-title"><span class="step">1</span><h2>创建知识库</h2></div>
+          <div class="row">
+            <div>
+              <label for="kbName">知识库名称</label>
+              <input id="kbName" value="文学作品" />
+            </div>
+            <div>
+              <label for="kbDesc">知识库描述</label>
+              <input id="kbDesc" value="测试语义检索" />
+            </div>
+          </div>
+          <div class="actions">
+            <button id="createKbBtn">创建知识库</button>
+            <button class="ghost" id="refreshKbBtn">刷新列表</button>
+          </div>
+          <div id="kbMessage" class="message">创建后会自动选中新知识库。</div>
+        </section>
+
+        <section>
+          <div class="section-title"><span class="step">2</span><h2>上传文章</h2></div>
+          <label for="kbSelect">选择知识库</label>
+          <select id="kbSelect"></select>
+
+          <div class="row">
+            <div>
+              <label for="docTitle">文章标题</label>
+              <input id="docTitle" value="春" />
+            </div>
+            <div>
+              <label for="txtFile">上传 txt 文件</label>
+              <input id="txtFile" type="file" accept=".txt,text/plain" />
+            </div>
+          </div>
+
+          <label for="docContent">文章内容</label>
+          <textarea id="docContent">春天来了，东风来了，山朗润起来了，水涨起来了，太阳的脸红起来了。</textarea>
+
+          <div class="actions">
+            <button id="uploadTextBtn">上传文章内容</button>
+            <button class="secondary" id="uploadFileBtn">上传 txt 文件</button>
+            <button class="ghost" id="fillSpringBtn">填入《春》</button>
+            <button class="ghost" id="fillHometownBtn">填入《故乡》</button>
+          </div>
+          <div id="uploadMessage" class="message">上传后会自动切分文本并写入向量库。</div>
+        </section>
+      </div>
+
+      <div class="column">
+        <section>
+          <div class="section-title"><span class="step">3</span><h2>搜索知识库</h2></div>
+          <label for="searchQuery">搜索内容</label>
+          <input id="searchQuery" value="春天" />
+
+          <div class="row">
+            <div>
+              <label for="searchKbSelect">搜索范围</label>
+              <select id="searchKbSelect"></select>
+            </div>
+            <div>
+              <label for="topK">返回数量</label>
+              <input id="topK" type="number" min="1" max="20" value="3" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="searchBtn">普通搜索</button>
+            <button class="secondary" id="streamBtn">流式搜索</button>
+          </div>
+          <div id="searchMessage" class="message">搜索结果会显示在下方。</div>
+          <div id="resultList" class="result-list"></div>
+          <div id="streamBox" class="stream-box">流式搜索输出区域</div>
+        </section>
+
+        <section>
+          <div class="section-title"><span class="step">4</span><h2>知识库列表</h2></div>
+          <div id="kbList" class="kb-list"></div>
+          <p class="hint">如果列表为空，请先创建知识库。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const state = { knowledgeBases: [] };
+
+    const els = {
+      kbCount: document.getElementById('kbCount'),
+      activeKb: document.getElementById('activeKb'),
+      healthState: document.getElementById('healthState'),
+      kbName: document.getElementById('kbName'),
+      kbDesc: document.getElementById('kbDesc'),
+      kbSelect: document.getElementById('kbSelect'),
+      searchKbSelect: document.getElementById('searchKbSelect'),
+      docTitle: document.getElementById('docTitle'),
+      docContent: document.getElementById('docContent'),
+      txtFile: document.getElementById('txtFile'),
+      searchQuery: document.getElementById('searchQuery'),
+      topK: document.getElementById('topK'),
+      kbMessage: document.getElementById('kbMessage'),
+      uploadMessage: document.getElementById('uploadMessage'),
+      searchMessage: document.getElementById('searchMessage'),
+      resultList: document.getElementById('resultList'),
+      streamBox: document.getElementById('streamBox'),
+      kbList: document.getElementById('kbList')
+    };
+
+    function setMessage(el, text, type = '') {
+      el.className = `message ${type}`.trim();
+      el.textContent = text;
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const text = await response.text();
+      let data = null;
+      if (text) {
+        try { data = JSON.parse(text); } catch { data = text; }
+      }
+      if (!response.ok) {
+        const detail = data && data.detail ? data.detail : `请求失败：${response.status}`;
+        throw new Error(Array.isArray(detail) ? detail.map(item => item.msg).join('；') : detail);
+      }
+      return data;
+    }
+
+    function selectedKbId(selectEl = els.kbSelect) {
+      const value = selectEl.value;
+      return value ? Number(value) : null;
+    }
+
+    function syncKnowledgeBaseViews(selectedId = null) {
+      els.kbCount.textContent = String(state.knowledgeBases.length);
+
+      const options = state.knowledgeBases.map(kb => `<option value="${kb.id}">${kb.name}（ID ${kb.id}）</option>`).join('');
+      const empty = '<option value="">请先创建知识库</option>';
+      els.kbSelect.innerHTML = options || empty;
+      els.searchKbSelect.innerHTML = '<option value="">全部知识库</option>' + options;
+
+      if (selectedId) {
+        els.kbSelect.value = String(selectedId);
+        els.searchKbSelect.value = String(selectedId);
+      }
+
+      const active = state.knowledgeBases.find(kb => String(kb.id) === els.kbSelect.value);
+      els.activeKb.textContent = active ? active.name : '未选择';
+
+      els.kbList.innerHTML = state.knowledgeBases.length
+        ? state.knowledgeBases.map(kb => `
+            <div class="kb-item">
+              <strong>${kb.name}</strong>
+              <small>ID ${kb.id}${kb.description ? ' ｜ ' + kb.description : ''}</small>
+            </div>
+          `).join('')
+        : '<div class="kb-item"><strong>暂无知识库</strong><small>先创建一个知识库</small></div>';
+    }
+
+    async function loadKnowledgeBases(selectedId = null) {
+      const data = await requestJson('/knowledge-bases?page=1&page_size=100');
+      state.knowledgeBases = data.items || [];
+      syncKnowledgeBaseViews(selectedId);
+    }
+
+    async function checkHealth() {
+      try {
+        await requestJson('/health');
+        els.healthState.textContent = '正常';
+      } catch {
+        els.healthState.textContent = '异常';
+      }
+    }
+
+    async function createKnowledgeBase() {
+      try {
+        const payload = {
+          name: els.kbName.value.trim(),
+          description: els.kbDesc.value.trim() || null
+        };
+        const data = await requestJson('/knowledge-bases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        await loadKnowledgeBases(data.id);
+        setMessage(els.kbMessage, `知识库创建成功：${data.name}（ID ${data.id}）`, 'success');
+      } catch (error) {
+        setMessage(els.kbMessage, error.message, 'error');
+      }
+    }
+
+    async function uploadTextDocument() {
+      const kbId = selectedKbId();
+      if (!kbId) return setMessage(els.uploadMessage, '请先选择知识库。', 'warn');
+
+      try {
+        const payload = {
+          title: els.docTitle.value.trim(),
+          content: els.docContent.value.trim()
+        };
+        const data = await requestJson(`/knowledge-bases/${kbId}/documents/text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        setMessage(els.uploadMessage, `文章上传成功：${data.document.title}，生成 ${data.chunk_count} 个文本片段。`, 'success');
+      } catch (error) {
+        setMessage(els.uploadMessage, error.message, 'error');
+      }
+    }
+
+    async function uploadTxtFile() {
+      const kbId = selectedKbId();
+      if (!kbId) return setMessage(els.uploadMessage, '请先选择知识库。', 'warn');
+      if (!els.txtFile.files.length) return setMessage(els.uploadMessage, '请选择一个 txt 文件。', 'warn');
+
+      try {
+        const formData = new FormData();
+        formData.append('file', els.txtFile.files[0]);
+        if (els.docTitle.value.trim()) formData.append('title', els.docTitle.value.trim());
+
+        const data = await requestJson(`/knowledge-bases/${kbId}/documents/file`, {
+          method: 'POST',
+          body: formData
+        });
+        setMessage(els.uploadMessage, `txt 上传成功：${data.document.title}，生成 ${data.chunk_count} 个文本片段。`, 'success');
+      } catch (error) {
+        setMessage(els.uploadMessage, error.message, 'error');
+      }
+    }
+
+    function renderResults(results) {
+      els.resultList.innerHTML = results.length
+        ? results.map((item, index) => `
+            <div class="result-card">
+              <h3>${index + 1}. ${item.title}</h3>
+              <div class="result-meta">相关度 ${item.score} ｜ 知识库 ${item.kb_id} ｜ 文档 ${item.document_id} ｜ 片段 ${item.chunk_index}</div>
+              <p>${item.content}</p>
+            </div>
+          `).join('')
+        : '<div class="result-card"><h3>没有找到相关内容</h3><p>可以换一个搜索词，或先上传更多文章。</p></div>';
+    }
+
+    function searchUrl(path) {
+      const params = new URLSearchParams({
+        query: els.searchQuery.value.trim(),
+        top_k: els.topK.value || '3'
+      });
+      const kbId = selectedKbId(els.searchKbSelect);
+      if (kbId) params.set('knowledge_base_id', String(kbId));
+      return `${path}?${params.toString()}`;
+    }
+
+    async function searchNormal() {
+      try {
+        const data = await requestJson(searchUrl('/search'));
+        renderResults(data.results || []);
+        setMessage(els.searchMessage, `搜索完成，返回 ${data.results.length} 条结果。`, 'success');
+      } catch (error) {
+        renderResults([]);
+        setMessage(els.searchMessage, error.message, 'error');
+      }
+    }
+
+    async function searchStream() {
+      els.streamBox.textContent = '';
+      try {
+        const response = await fetch(searchUrl('/search/stream'));
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.detail || `请求失败：${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          els.streamBox.textContent += decoder.decode(value, { stream: true });
+        }
+        setMessage(els.searchMessage, '流式搜索完成。', 'success');
+      } catch (error) {
+        setMessage(els.searchMessage, error.message, 'error');
+        els.streamBox.textContent = '流式搜索失败。';
+      }
+    }
+
+    document.getElementById('createKbBtn').addEventListener('click', createKnowledgeBase);
+    document.getElementById('refreshKbBtn').addEventListener('click', () => loadKnowledgeBases().catch(error => setMessage(els.kbMessage, error.message, 'error')));
+    document.getElementById('uploadTextBtn').addEventListener('click', uploadTextDocument);
+    document.getElementById('uploadFileBtn').addEventListener('click', uploadTxtFile);
+    document.getElementById('searchBtn').addEventListener('click', searchNormal);
+    document.getElementById('streamBtn').addEventListener('click', searchStream);
+    els.kbSelect.addEventListener('change', () => syncKnowledgeBaseViews(Number(els.kbSelect.value)));
+
+    document.getElementById('fillSpringBtn').addEventListener('click', () => {
+      els.docTitle.value = '春';
+      els.docContent.value = '春天来了，东风来了，山朗润起来了，水涨起来了，太阳的脸红起来了。';
+      els.searchQuery.value = '春天';
+    });
+
+    document.getElementById('fillHometownBtn').addEventListener('click', () => {
+      els.docTitle.value = '故乡';
+      els.docContent.value = '少年闰土在海边看瓜，他项带银圈，手捏一柄钢叉。';
+      els.searchQuery.value = '少年闰土';
+    });
+
+    checkHealth();
+    loadKnowledgeBases().catch(error => setMessage(els.kbMessage, error.message, 'error'));
+  </script>
+</body>
+</html>
