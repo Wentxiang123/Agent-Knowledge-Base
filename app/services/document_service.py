@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from app import models
 from app.schemas import DocumentTextCreate
 from app.services import kb_service
+from app.services.embedding_service import embedding_service
+from app.services.vector_store_service import vector_store_service
 
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
@@ -87,6 +89,13 @@ def save_uploaded_file(kb_id: int, filename: str, raw_content: bytes) -> Path:
     return target
 
 
+def _store_chunks_in_vector_store(document: models.Document, chunks: list[models.Chunk]) -> None:
+    for chunk in chunks:
+        chunk.vector_id = f"chunk-{chunk.id}"
+    embeddings = embedding_service.embed_texts([chunk.content for chunk in chunks])
+    vector_store_service.upsert_chunks(chunks=chunks, embeddings=embeddings, document=document)
+
+
 def create_document_from_text(
     db: Session,
     kb_id: int,
@@ -117,7 +126,15 @@ def create_document_from_text(
         for index, chunk in enumerate(chunks_content)
     ]
     db.add_all(chunks)
-    db.commit()
+    db.flush()
+
+    try:
+        _store_chunks_in_vector_store(document, chunks)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
     db.refresh(document)
     for chunk in chunks:
         db.refresh(chunk)
