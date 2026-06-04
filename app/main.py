@@ -19,7 +19,7 @@ from app.schemas import (
 from app.services import document_service, kb_service, search_service
 
 BASE_DIR = Path(__file__).resolve().parent
-DASHBOARD_PATH = BASE_DIR / "static" / "index.html"
+DASHBOARD_PATH = BASE_DIR / "static" / "dashboard.html"
 
 
 @asynccontextmanager
