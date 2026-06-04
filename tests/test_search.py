@@ -86,8 +86,30 @@ def test_search_returns_related_hometown_document() -> None:
     assert "少年闰土" in data["results"][0]["content"]
 
 
+def test_stream_search_returns_incremental_text() -> None:
+    kb_id = seed_documents()
+
+    with client.stream("GET", f"/search/stream?query=春天&knowledge_base_id={kb_id}&top_k=1") as response:
+        assert response.status_code == 200
+        chunks = list(response.iter_text())
+
+    assert len(chunks) >= 2
+    streamed_text = "".join(chunks)
+    assert "正在查询知识库：春天" in streamed_text
+    assert "找到 1 条相关内容" in streamed_text
+    assert "[1] 春" in streamed_text
+    assert "相关片段" in streamed_text
+
+
 def test_search_rejects_blank_query() -> None:
     response = client.get("/search?query=%20%20%20")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "query cannot be empty"
+
+
+def test_stream_search_rejects_blank_query() -> None:
+    response = client.get("/search/stream?query=%20%20%20")
 
     assert response.status_code == 400
     assert response.json()["detail"] == "query cannot be empty"
