@@ -131,6 +131,7 @@ def create_document_from_txt_file(
     raw_content: bytes,
     title: str | None = None,
 ) -> tuple[models.Document, list[models.Chunk]]:
+    kb_service.get_knowledge_base(db, kb_id)
     content = decode_txt_content(filename, raw_content)
     save_uploaded_file(kb_id, filename, raw_content)
     document_title = _normalize_text(title) or Path(filename).stem or "Untitled Document"
