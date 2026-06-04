@@ -1,12 +1,19 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Query, Response, status
+from fastapi import Depends, FastAPI, File, Form, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app import models
 from app.database import Base, engine, get_db
-from app.schemas import KnowledgeBaseCreate, KnowledgeBaseList, KnowledgeBaseRead, KnowledgeBaseUpdate
-from app.services import kb_service
+from app.schemas import (
+    DocumentIngestResponse,
+    DocumentTextCreate,
+    KnowledgeBaseCreate,
+    KnowledgeBaseList,
+    KnowledgeBaseRead,
+    KnowledgeBaseUpdate,
+)
+from app.services import document_service, kb_service
 
 
 @asynccontextmanager
@@ -74,3 +81,39 @@ def delete_knowledge_base(
 ) -> Response:
     kb_service.delete_knowledge_base(db, kb_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post(
+    "/knowledge-bases/{kb_id}/documents/text",
+    response_model=DocumentIngestResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_text_document(
+    kb_id: int,
+    payload: DocumentTextCreate,
+    db: Session = Depends(get_db),
+) -> DocumentIngestResponse:
+    document, chunks = document_service.create_document_from_text(db, kb_id, payload)
+    return DocumentIngestResponse(document=document, chunks=chunks, chunk_count=len(chunks))
+
+
+@app.post(
+    "/knowledge-bases/{kb_id}/documents/file",
+    response_model=DocumentIngestResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_txt_document(
+    kb_id: int,
+    file: UploadFile = File(...),
+    title: str | None = Form(default=None),
+    db: Session = Depends(get_db),
+) -> DocumentIngestResponse:
+    raw_content = await file.read()
+    document, chunks = document_service.create_document_from_txt_file(
+        db=db,
+        kb_id=kb_id,
+        filename=file.filename or "document.txt",
+        raw_content=raw_content,
+        title=title,
+    )
+    return DocumentIngestResponse(document=document, chunks=chunks, chunk_count=len(chunks))
