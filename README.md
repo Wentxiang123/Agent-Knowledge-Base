@@ -22,13 +22,14 @@ Implemented:
 - Local deterministic embedding fallback for development and tests
 - Chroma vector store integration
 - Automatic vector indexing after document ingestion
+- Semantic search API
 - CRUD tests for knowledge base endpoints
 - Document ingestion tests
 - Embedding service tests
+- Semantic search tests
 
 Planned:
 
-- Semantic search API
 - Streaming search response
 - MCP tool integration
 
@@ -72,6 +73,34 @@ The file upload endpoint accepts multipart form data with:
 - `title`: optional document title
 
 After ingestion, each text chunk is embedded and written to Chroma. The generated `vector_id` is stored back on the chunk record.
+
+### Search
+
+```text
+GET /search?query=春天&knowledge_base_id=1&top_k=5
+```
+
+Response example:
+
+```json
+{
+  "query": "春天",
+  "knowledge_base_id": 1,
+  "top_k": 5,
+  "results": [
+    {
+      "kb_id": 1,
+      "document_id": 1,
+      "chunk_id": 1,
+      "chunk_index": 0,
+      "title": "春",
+      "content": "相关文本片段...",
+      "score": 0.92,
+      "distance": 0.08
+    }
+  ]
+}
+```
 
 ## Environment Variables
 
