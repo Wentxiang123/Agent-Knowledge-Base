@@ -24,14 +24,12 @@ Implemented:
 - Automatic vector indexing after document ingestion
 - Semantic search API
 - Streaming search response
+- MCP tool integration
 - CRUD tests for knowledge base endpoints
 - Document ingestion tests
 - Embedding service tests
 - Semantic search tests
-
-Planned:
-
-- MCP tool integration
+- MCP tool tests
 
 ## API Endpoints
 
@@ -118,6 +116,70 @@ The streaming endpoint returns `text/plain` chunks such as:
 相关度：0.92
 来源：知识库 1，文档 1，片段 0
 相关片段：相关文本片段...
+```
+
+## MCP Tool
+
+Start the MCP server with:
+
+```bash
+python -m app.mcp_server
+```
+
+It exposes one tool:
+
+```text
+search_knowledge_base
+```
+
+Tool input:
+
+```json
+{
+  "query": "帮我查一下春天相关内容",
+  "knowledge_base_id": 1,
+  "top_k": 3
+}
+```
+
+Tool output:
+
+```json
+{
+  "ok": true,
+  "query": "帮我查一下春天相关内容",
+  "knowledge_base_id": 1,
+  "top_k": 3,
+  "results": [
+    {
+      "kb_id": 1,
+      "document_id": 1,
+      "chunk_id": 1,
+      "chunk_index": 0,
+      "title": "春",
+      "content": "相关文本片段...",
+      "score": 0.92,
+      "distance": 0.08
+    }
+  ]
+}
+```
+
+Example MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "agent-knowledge-base": {
+      "command": "python",
+      "args": ["-m", "app.mcp_server"],
+      "env": {
+        "DATABASE_URL": "sqlite:///./data/app.db",
+        "CHROMA_PERSIST_DIRECTORY": "./data/vector_store"
+      }
+    }
+  }
+}
 ```
 
 ## Environment Variables
