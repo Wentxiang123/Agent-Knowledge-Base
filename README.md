@@ -18,14 +18,17 @@ Implemented:
 - Text document upload
 - txt file parsing with UTF-8 and GB18030 support
 - Text chunking with fixed-size overlap
+- Embedding generation with OpenAI-compatible API support
+- Local deterministic embedding fallback for development and tests
+- Chroma vector store integration
+- Automatic vector indexing after document ingestion
 - CRUD tests for knowledge base endpoints
 - Document ingestion tests
+- Embedding service tests
 
 Planned:
 
-- Embedding generation
-- Vector store integration
-- Semantic search
+- Semantic search API
 - Streaming search response
 - MCP tool integration
 
@@ -67,6 +70,22 @@ The file upload endpoint accepts multipart form data with:
 
 - `file`: a `.txt` file
 - `title`: optional document title
+
+After ingestion, each text chunk is embedded and written to Chroma. The generated `vector_id` is stored back on the chunk record.
+
+## Environment Variables
+
+```text
+DATABASE_URL=sqlite:///./data/app.db
+UPLOAD_DIR=./data/uploads
+CHROMA_PERSIST_DIRECTORY=./data/vector_store
+EMBEDDING_API_KEY=
+EMBEDDING_BASE_URL=
+EMBEDDING_MODEL=
+REQUEST_TIMEOUT_SECONDS=30
+```
+
+If `EMBEDDING_API_KEY`, `EMBEDDING_BASE_URL`, and `EMBEDDING_MODEL` are all configured, the service calls an OpenAI-compatible `/v1/embeddings` endpoint. Otherwise, it uses a local deterministic embedding fallback so the project can run without external credentials.
 
 ## Run Locally
 
