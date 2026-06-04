@@ -86,6 +86,17 @@ def test_search_returns_related_hometown_document() -> None:
     assert "少年闰土" in data["results"][0]["content"]
 
 
+def test_delete_knowledge_base_removes_vectors_from_search() -> None:
+    kb_id = seed_documents()
+
+    delete_response = client.delete(f"/knowledge-bases/{kb_id}")
+    search_response = client.get("/search?query=春天&top_k=2")
+
+    assert delete_response.status_code == 204
+    assert search_response.status_code == 200
+    assert search_response.json()["results"] == []
+
+
 def test_stream_search_returns_incremental_text() -> None:
     kb_id = seed_documents()
 
