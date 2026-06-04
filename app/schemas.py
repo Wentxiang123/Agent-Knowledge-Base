@@ -30,3 +30,36 @@ class KnowledgeBaseList(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class DocumentTextCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    content: str = Field(..., min_length=1)
+
+
+class ChunkRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kb_id: int
+    document_id: int
+    content: str
+    chunk_index: int
+    vector_id: str | None
+    created_at: datetime
+
+
+class DocumentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kb_id: int
+    title: str
+    content: str
+    created_at: datetime
+
+
+class DocumentIngestResponse(BaseModel):
+    document: DocumentRead
+    chunks: list[ChunkRead]
+    chunk_count: int
