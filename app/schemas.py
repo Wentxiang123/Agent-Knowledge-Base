@@ -63,3 +63,21 @@ class DocumentIngestResponse(BaseModel):
     document: DocumentRead
     chunks: list[ChunkRead]
     chunk_count: int
+
+
+class SearchResult(BaseModel):
+    kb_id: int
+    document_id: int
+    chunk_id: int
+    chunk_index: int
+    title: str
+    content: str
+    score: float
+    distance: float
+
+
+class SearchResponse(BaseModel):
+    query: str
+    knowledge_base_id: int | None
+    top_k: int
+    results: list[SearchResult]
