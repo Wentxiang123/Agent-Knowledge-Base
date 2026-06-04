@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, Query, Response, UploadFile, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app import models
@@ -17,6 +18,9 @@ from app.schemas import (
 )
 from app.services import document_service, kb_service, search_service
 
+BASE_DIR = Path(__file__).resolve().parent
+DASHBOARD_PATH = BASE_DIR / "static" / "index.html"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,6 +34,11 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+
+@app.get("/", include_in_schema=False)
+def dashboard() -> FileResponse:
+    return FileResponse(DASHBOARD_PATH)
 
 
 @app.get("/health")
