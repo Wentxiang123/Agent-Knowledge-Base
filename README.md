@@ -15,6 +15,7 @@ Implemented:
 - SQLAlchemy data models for knowledge bases, documents, and chunks
 - Knowledge base CRUD API
 - Pagination for knowledge base listing
+- CRUD tests for knowledge base endpoints
 
 Planned:
 
@@ -55,4 +56,10 @@ After startup, open the API docs at:
 
 ```text
 http://127.0.0.1:8000/docs
+```
+
+## Run Tests
+
+```bash
+pytest
 ```
