@@ -1,6 +1,7 @@
 """Chroma vector store integration."""
 
 import os
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -80,4 +81,6 @@ class VectorStoreService:
             ) from exc
 
 
-vector_store_service = VectorStoreService()
+@lru_cache(maxsize=1)
+def get_vector_store_service() -> VectorStoreService:
+    return VectorStoreService()
