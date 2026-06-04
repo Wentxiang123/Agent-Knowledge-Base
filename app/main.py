@@ -12,8 +12,9 @@ from app.schemas import (
     KnowledgeBaseList,
     KnowledgeBaseRead,
     KnowledgeBaseUpdate,
+    SearchResponse,
 )
-from app.services import document_service, kb_service
+from app.services import document_service, kb_service, search_service
 
 
 @asynccontextmanager
@@ -117,3 +118,24 @@ async def upload_txt_document(
         title=title,
     )
     return DocumentIngestResponse(document=document, chunks=chunks, chunk_count=len(chunks))
+
+
+@app.get("/search", response_model=SearchResponse)
+def search_knowledge_base(
+    query: str = Query(..., min_length=1),
+    top_k: int = Query(5, ge=1, le=20),
+    knowledge_base_id: int | None = Query(default=None, ge=1),
+    db: Session = Depends(get_db),
+) -> SearchResponse:
+    results = search_service.search_knowledge_base(
+        db=db,
+        query=query,
+        top_k=top_k,
+        knowledge_base_id=knowledge_base_id,
+    )
+    return SearchResponse(
+        query=query.strip(),
+        knowledge_base_id=knowledge_base_id,
+        top_k=top_k,
+        results=results,
+    )
