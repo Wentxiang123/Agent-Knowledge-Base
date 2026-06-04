@@ -1,47 +1,47 @@
 # Agent Knowledge Base
 
-A semantic knowledge base with streaming retrieval and MCP integration for agents.
+一个支持语义检索、流式返回和 MCP Tool 集成的知识库系统。
 
-## Overview
+## 项目简介
 
-This project implements a lightweight knowledge base service that supports text ingestion, semantic search, streaming responses, and an MCP tool interface for agent workflows.
+本项目实现了一个轻量级知识库服务，支持知识库管理、文本内容上传、语义搜索、流式搜索返回，并将搜索能力封装为 MCP Tool，方便 Agent 调用知识库检索能力。
 
-For detailed setup, validation steps, and implementation notes, see [docs/run-and-implementation.md](docs/run-and-implementation.md).
+更完整的运行步骤、验证流程和实现思路见：[docs/run-and-implementation.md](docs/run-and-implementation.md)。
 
-## Current Status
+## 当前功能
 
-Implemented:
+已实现：
 
-- Project structure
-- SQLite database connection
-- SQLAlchemy data models for knowledge bases, documents, and chunks
-- Knowledge base CRUD API
-- Pagination for knowledge base listing
-- Text document upload
-- txt file parsing with UTF-8 and GB18030 support
-- Text chunking with fixed-size overlap
-- Embedding generation with OpenAI-compatible API support
-- Local deterministic embedding fallback for development and tests
-- Chroma vector store integration
-- Automatic vector indexing after document ingestion
-- Semantic search API
-- Streaming search response
-- MCP tool integration
-- CRUD tests for knowledge base endpoints
-- Document ingestion tests
-- Embedding service tests
-- Semantic search tests
-- MCP tool tests
+- 项目基础结构
+- SQLite 数据库连接
+- 知识库、文档、文本片段的 SQLAlchemy 数据模型
+- 知识库增删改查 API
+- 知识库分页查询
+- 直接文本上传
+- `.txt` 文件解析，支持 UTF-8 和 GB18030
+- 固定长度 + 重叠窗口的文本切分
+- 兼容 OpenAI 格式的 embedding 生成
+- 本地确定性 embedding 兜底，便于开发和测试
+- Chroma 向量库集成
+- 文档上传后自动向量化并写入向量库
+- 语义搜索 API
+- 流式搜索返回
+- MCP Tool 集成
+- 知识库 CRUD 测试
+- 文档上传测试
+- embedding 服务测试
+- 语义搜索测试
+- MCP Tool 测试
 
-## API Endpoints
+## API 接口
 
-### Health Check
+### 健康检查
 
 ```text
 GET /health
 ```
 
-### Knowledge Bases
+### 知识库管理
 
 ```text
 POST   /knowledge-bases
@@ -51,14 +51,14 @@ PUT    /knowledge-bases/{kb_id}
 DELETE /knowledge-bases/{kb_id}
 ```
 
-### Documents
+### 文档上传
 
 ```text
 POST /knowledge-bases/{kb_id}/documents/text
 POST /knowledge-bases/{kb_id}/documents/file
 ```
 
-Text upload request example:
+直接上传文本示例：
 
 ```json
 {
@@ -67,20 +67,20 @@ Text upload request example:
 }
 ```
 
-The file upload endpoint accepts multipart form data with:
+`.txt` 文件上传接口使用 multipart form data：
 
-- `file`: a `.txt` file
-- `title`: optional document title
+- `file`：`.txt` 文件
+- `title`：可选，文档标题
 
-After ingestion, each text chunk is embedded and written to Chroma. The generated `vector_id` is stored back on the chunk record.
+文档上传后，系统会自动切分文本、生成 embedding、写入 Chroma，并将生成的 `vector_id` 回写到数据库中的 chunk 记录。
 
-### Search
+### 语义搜索
 
 ```text
 GET /search?query=春天&knowledge_base_id=1&top_k=5
 ```
 
-Response example:
+返回示例：
 
 ```json
 {
@@ -102,13 +102,13 @@ Response example:
 }
 ```
 
-### Streaming Search
+### 流式搜索
 
 ```text
 GET /search/stream?query=春天&knowledge_base_id=1&top_k=5
 ```
 
-The streaming endpoint returns `text/plain` chunks such as:
+流式接口返回 `text/plain` 小段文本，例如：
 
 ```text
 正在查询知识库：春天
@@ -122,19 +122,19 @@ The streaming endpoint returns `text/plain` chunks such as:
 
 ## MCP Tool
 
-Start the MCP server with:
+启动 MCP Server：
 
 ```bash
 python -m app.mcp_server
 ```
 
-It exposes one tool:
+暴露的工具名：
 
 ```text
 search_knowledge_base
 ```
 
-Tool input:
+工具输入：
 
 ```json
 {
@@ -144,7 +144,7 @@ Tool input:
 }
 ```
 
-Tool output:
+工具输出：
 
 ```json
 {
@@ -167,7 +167,7 @@ Tool output:
 }
 ```
 
-Example MCP client configuration:
+MCP client 配置示例：
 
 ```json
 {
@@ -184,7 +184,7 @@ Example MCP client configuration:
 }
 ```
 
-## Environment Variables
+## 环境变量
 
 ```text
 DATABASE_URL=sqlite:///./data/app.db
@@ -196,22 +196,24 @@ EMBEDDING_MODEL=
 REQUEST_TIMEOUT_SECONDS=30
 ```
 
-If `EMBEDDING_API_KEY`, `EMBEDDING_BASE_URL`, and `EMBEDDING_MODEL` are all configured, the service calls an OpenAI-compatible `/v1/embeddings` endpoint. Otherwise, it uses a local deterministic embedding fallback so the project can run without external credentials.
+如果配置了 `EMBEDDING_API_KEY`、`EMBEDDING_BASE_URL` 和 `EMBEDDING_MODEL`，系统会调用兼容 OpenAI `/v1/embeddings` 格式的接口。
 
-## Run Locally
+如果没有配置以上三个变量，系统会使用本地确定性 embedding 兜底，保证项目在没有外部服务的情况下也能启动、测试和演示完整链路。
+
+## 本地运行
 
 ```bash
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-After startup, open the API docs at:
+启动后访问接口文档：
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## Run Tests
+## 运行测试
 
 ```bash
 pytest
